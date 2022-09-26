@@ -140,20 +140,18 @@ export class MongoDBDuplexConnector extends Validatable implements SourceConnect
 
             const adminDb = this.db.admin();
 
-            const { version } = await adminDb.serverStatus();
 
-            let majorVersion = version.split('.')[0];
 
-            majorVersion = majorVersion && Number(majorVersion);
+
+
+
 
             const collection = this.db.collection(collection_name);
 
             // removes timeout property if in atlas free tier, since noTimeout cursors are forbidden (the property timeout cannot be set to any value)
             let chunkCursor = collection.find<Buffer>({}, { timeout: this.connection.isAtlasFreeTier ? undefined : false, batchSize: this.assource.bulk_read_size });
             
-            if (majorVersion < 4) {
-                chunkCursor = chunkCursor.snapshot(true as any);
-            }
+
 
             return cursorToObservalbe(chunkCursor);
         }).pipe(
